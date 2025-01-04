@@ -24,6 +24,7 @@ use crate::graphics::{Compositor, compositor};
 use crate::runtime::Debug;
 use crate::runtime::user_interface::{self, UserInterface};
 use crate::runtime::{self, Action, Task};
+use crate::runtime::window::WindowHandles;
 use crate::{Clipboard, Error, Proxy, Settings};
 
 use window_manager::WindowManager;
@@ -1468,6 +1469,14 @@ fn run_action<P, C>(
                     .and_then(|window| window.raw.window_handle().ok())
                 {
                     f(handle);
+                }
+            }
+            window::Action::RunWithWindowHandles(id, f) => {
+                use winit::raw_window_handle::HasDisplayHandle;
+                use winit::raw_window_handle::HasWindowHandle;
+
+                if let Some(window) = window_manager.get_mut(id) {
+                    f(WindowHandles::new(window.raw.window_handle().unwrap(), window.raw.display_handle().unwrap()));
                 }
             }
             window::Action::Screenshot(id, channel) => {
